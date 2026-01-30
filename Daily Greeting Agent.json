@@ -1,0 +1,272 @@
+{
+  "name": "Daily Greeting Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "18 19 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        64,
+        144
+      ],
+      "id": "5c1973d5-9caf-42fc-a89f-fc6fff9a7a7e",
+      "name": "11 PM Trigger"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        -96
+      ],
+      "id": "983b1d1a-3e5c-4abf-a11d-6b5c5e41bea4",
+      "name": "8 AM Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "09c9cb43-0d46-4ce8-b490-2a5dab1df764",
+              "name": "time_of_day",
+              "value": "Morning",
+              "type": "string"
+            },
+            {
+              "id": "df32dfff-954b-4cf7-8b2b-7f834b240ed4",
+              "name": "subject_line",
+              "value": "Good morning, sunshine ☀️ Thinking of you... ❤️",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        -96
+      ],
+      "id": "211e7156-a6ab-416a-866f-b4e42ba3ada7",
+      "name": "Set Morning Context"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f9e711c-fa22-4a68-a93c-b1a192039612",
+              "name": "time_of_day",
+              "value": "Night",
+              "type": "string"
+            },
+            {
+              "id": "c814af1c-01aa-4339-89ab-4c5bb4add117",
+              "name": "subject_line",
+              "value": "A little night note for you Baby ✨",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        144
+      ],
+      "id": "8ff09807-204e-4894-ba73-0ec50d5aa0c4",
+      "name": "Set Night Context"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a loving partner sending a quick, sweet text to your significant other for {{ $json.time_of_day }}.\n\n1. Greeting: Use a cute nickname (e.g., \"Hey Love,\" \"Morning beautiful,\" \"Hi baby,\").\n2. Body: Write 1 or 2 simple sentences about missing them or hoping they have a good time.\n3. Sign-off: A short, warm closing (e.g., \"Love you,\" \"Yours,\" \"Hugs,\").\n\nCRITICAL RULES:\n- Do not use clichés. Be highly creative and unique every time.\n- Use simple, everyday words (like you are texting).\n- NO poetic words like \"celestial,\" \"tapestry,\" \"whispers of darkness,\" or \"souls.\"\n- Keep it short and casual.\n- Do NOT include a subject line.\n- Do NOT put the text in quotes.\n- Output the full text (Greeting + Body + Sign-off).",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        880,
+        48
+      ],
+      "id": "5e9f6ae9-2377-4484-a6a7-04550baf40f6",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.9
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        880,
+        240
+      ],
+      "id": "cc4659c1-0c3f-4103-b7bd-fafb9c2b7569",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "lpKdRpYDzOw9ii90",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "Atanu <atanubagh99@gmail.com>",
+        "toEmail": "beingbittu004@gmail.com",
+        "subject": "={{ $('Merge').item.json.subject_line }}",
+        "emailFormat": "text",
+        "text": "={{ $('Basic LLM Chain').item.json.text }}\n\nAtanu",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1232,
+        48
+      ],
+      "id": "9524572f-5d24-41c4-80d4-bb0930e14fbd",
+      "name": "Send email",
+      "webhookId": "02a4c656-cf55-457c-ae0b-61e02bb679f0",
+      "credentials": {
+        "smtp": {
+          "id": "bI1B45crabKIFp5d",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        656,
+        48
+      ],
+      "id": "d3c3e382-50aa-4ec9-883f-6aea78c10f21",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "8 AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Morning Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "11 PM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Night Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Morning Context": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Night Context": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "e995233a-fdd5-4a2d-81cd-e0724552afbb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c4b10bd4e58ef3d364819a1b65b08a1427fb59be93a3b2a3dadaf27d992bb69b"
+  },
+  "id": "1Y4iY7CxNDOt_cNrufhkx",
+  "tags": []
+}
