@@ -7,123 +7,116 @@
 
 > **"Never forget to say 'Good Morning' or 'Good Night' again."**
 
-This project is a complete automation agent that wakes up twice a day, uses a local AI model (Llama 3.2) to generate a unique, human-sounding romantic message, and emails it to your partner. It runs entirely on your local machine and costs **$0.00**.
+---
+
+## 📖 The Story
+We've all been there: You want to send a sweet text to your partner every morning, but sometimes life gets in the way. You wake up late, rush to work, and forget.
+
+**This project solves that.** It is a "Set-and-Forget" AI Agent that:
+1.  **Wakes up** twice a day (Morning & Night).
+2.  **Thinks** of a unique, creative message using a local AI brain (Llama 3.2).
+3.  **Emails** it to your partner with a personal, romantic touch.
+
+**The best part?** It runs entirely on your own computer, keeps your data private, and costs **₹0.00 INR**.
+
+**Total Cost:** ₹0.00 INR (Free) **Privacy:** 100% Local (Self-Hosted)
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ The Architecture
+Instead of building two separate bots, this workflow uses a smart **"Y-Shape" Logic**. It converges different timelines into a single "Brain," ensuring efficient operation.
 
-The workflow follows a logical "Y" structure. It uses two separate time triggers that feed into a single AI brain, ensuring the efficient reuse of logic.
-
-![Workflow Diagram](./workflow-diagram.png)
-*(Note: Upload the screenshot of your workflow here)*
+![Workflow Diagram](./n8n-workflow-diagram.png)
 
 **The Logic Flow:**
-1.  **Triggers ⏰:** Wakes up at **8:00 AM** and **11:00 PM**.
-2.  **Context Engine 🧠:** Sets the "Time of Day" and a specific "Subject Line" (e.g., "Good morning sunshine" vs. "Sweet dreams").
-3.  **The Brain (Local AI) 🦙:** Connects to **Ollama** running locally. It uses a custom "Anti-Cliché" prompt to ensure messages sound like *you*, not a robot.
-4.  **Delivery 📨:** Sends the email via **Gmail SMTP** with a clean, professional signature.
+1.  **Dual Triggers ⏰:** The workflow listens for **8:00 AM** and **11:00 PM**.
+2.  **Context Setting 🧠:** It labels the event (e.g., "Morning" vs. "Night") and sets a specific Subject Line.
+3.  **The Merge 🔀:** The critical step where both timelines unite into one flow.
+4.  **The Brain 🦙:** Your local **Ollama** instance generates the text.
+5.  **The Delivery 📨:** Gmail SMTP sends the final message with a clean signature.
 
 ---
 
 ## 🛠️ Prerequisites
+*Before you fly, check your gear.*
 
-Before you start building, ensure you have these three components ready:
-
-### 1. n8n (Self-Hosted)
-You need n8n running locally.
-* [Official Installation Guide](https://docs.n8n.io/hosting/)
-
-### 2. Ollama & Llama 3.2
-This is the "Brain" of the operation.
-1.  Download and install [Ollama](https://ollama.com/).
-2.  Open your terminal and pull the model:
-    ```bash
-    ollama run llama3.2
-    ```
-3.  Ensure Ollama is running in the background.
-
-### 3. Gmail "App Password"
-**Crucial:** You cannot use your normal Google login password.
-1.  Go to your [Google Account Security page](https://myaccount.google.com/security).
-2.  Enable **2-Step Verification**.
-3.  Search for **"App Passwords"**.
-4.  Create a new one named "n8n" and **copy the 16-character code**. You will need this later.
-
+1.  **n8n (Self-Hosted):** You need n8n running locally (Docker or npm). [Installation Guide](https://docs.n8n.io/hosting/)
+2.  **Ollama & Llama 3.2:**
+    * Download [Ollama](https://ollama.com/).
+    * Run `ollama run llama3.2` in your terminal to pull the model.
+3.  **Gmail App Password (Vital!):**
+    * You cannot use your normal login password.
+    * Go to **Google Account** → **Security** → **2-Step Verification** → **App Passwords**.
+    * Generate a new password named "n8n" and copy the 16-character code. You will need this later.
+      
 ---
 
 ## 🚀 Step-by-Step Implementation Guide
 
-Follow these steps to build the workflow from scratch (or configure the provided JSON file).
+### Phase 1: The Schedule (Triggers)
+We need punctuality.
+* **Node 1:** `Schedule Trigger` set to **8:00 AM**.
+* **Node 2:** `Schedule Trigger` set to **11:00 PM** (23:00).
 
-### Phase 1: The Triggers (Setting the Schedule)
-We need two separate triggers to start the process.
-1.  Add a **Schedule Trigger** node. Set it to **8:00 AM**.
-2.  Add a second **Schedule Trigger** node. Set it to **11:00 PM** (23:00).
+### Phase 2: The Context (Variables)
+The AI is smart, but it needs context. We use **Edit Fields** nodes to inject data.
+* **Morning Path:** Set `time_of_day` to "Morning" and `subject_line` to "Good morning, sunshine ☀️".
+* **Night Path:** Set `time_of_day` to "Night" and `subject_line` to "Sweet dreams 🌙".
 
-### Phase 2: Context Setting (Defining the Vibe)
-The AI needs to know *what* to write about. We use "Edit Fields" (Set) nodes for this.
-1.  Connect a **Set** node to the Morning trigger.
-    * Variable `time_of_day`: "Morning"
-    * Variable `subject_line`: "Good morning, sunshine ☀️"
-2.  Connect a separate **Set** node to the Night trigger.
-    * Variable `time_of_day`: "Night"
-    * Variable `subject_line`: "A little night note for you 🌙"
+### Phase 3: The Merge (The Secret Sauce) 🔀
+*This is the step most people miss.* We must combine the two paths so we don't have to duplicate our AI logic.
+* **Node:** Add a **Merge** node.
+* **Connection:** Connect both "Set Context" nodes to the Merge node inputs.
+* **Mode:** Select **"Append"**. This acts as a traffic controller, letting whichever trigger fired pass through to the Brain.
 
-### Phase 3: The AI Brain (Ollama)
-This is where the magic happens.
-1.  Add a **Basic LLM Chain** node.
-2.  Connect **Ollama Chat Model** to the chain.
-3.  **Network Config (The "Gotcha"):**
-    * If n8n is in Docker, use Base URL: `http://host.docker.internal:11434`
-    * If n8n is native, use Base URL: `http://localhost:11434`
-4.  **The Prompt:** Use a strict prompt to keep it human.
-    > *"Write a short text. Do not use clichés. Do not be poetic. Keep it casual. Output ONLY the message body."*
-5.  **Temperature:** Set to **0.9** in Options. This ensures the message is different every single day.
+### Phase 4: The Brain (Ollama) 🧠
+Now, we instruct the AI.
+* **Node:** `Basic LLM Chain` connected to `Ollama Chat Model`.
+* **The "Anti-Robot" Prompt:**
+    > *"You are a loving partner. Write a short text for {{ $json.time_of_day }}. Do NOT use clichés. Do NOT use poetic words like 'celestial' or 'tapestry'. Keep it casual and human. Output ONLY the message body."*
+* **Temperature:** Set to **0.9**. This forces the AI to be "Creative" so it never sends the same message twice.
 
-### Phase 4: The Delivery (Email)
-1.  Add a **Send Email** node.
-2.  **Credential Setup:** Select **SMTP**.
+### Phase 5: The Delivery (Email) 📨
+* **Node:** `Send Email` (SMTP).
+* **Settings:**
+    * **Host:** `smtp.gmail.com`
     * **User:** Your Gmail address.
     * **Password:** The 16-character App Password.
-    * **Host:** `smtp.gmail.com`
     * **Port:** `587`
     * **SSL/TLS:** **OFF** (Important!).
-3.  **Formatting:**
-    * **From:** `Your Name <your-email@gmail.com>` (This format hides the email address).
-    * **Body:** Map the AI output and append your signature manually (`{{ $json.text }}\n\nLove, Atanu`).
+* **The Signature Trick:** In the body text, use:
+    ```
+    {{ $json.text }}
+
+    Love, Your Name
+    ```
+    *(Hit Enter twice to ensure the signature sits on its own line!)*
 
 ---
 
-## ⚠️ Common Issues & "Gotchas"
-*Read this if your workflow isn't working!*
+## ⚠️ "Gotchas" & Troubleshooting
+*I broke it so you don't have to. Here is how to fix common errors.*
 
-### 1. Removing the "Sent automatically with n8n" Footer
-By default, n8n adds branding to the bottom of emails.
-* **Fix:** In the **Send Email** node, scroll to **Options** → Add **"Append n8n Attribution"** → Toggle it to **FALSE** (Grey).
+### 🚫 Issue 1: The "Sent automatically with n8n" Footer
+By default, n8n adds branding to your emails. Nothing kills romance like a "Sent by a Bot" footer.
+* **The Fix:** In the Email Node, scroll to **Options** → **Add Option** → **Append n8n Attribution** → Toggle it to **FALSE** (Grey).
 
-### 2. Connection Refused (Ollama)
-If n8n says it can't find Ollama, it's usually a Docker networking issue.
-* **Fix:** Do not use `localhost`. Use `host.docker.internal` (Mac/Windows) or your bridge IP `172.17.0.1` (Linux).
+### 🌐 Issue 2: "Connection Refused" (Docker Users)
+If n8n cannot see Ollama, it's a networking issue.
+* **The Fix:** Do not use `localhost`. Use `http://host.docker.internal:11434` as your Base URL.
 
-### 3. "Authentication Failed" (Gmail)
-* **Fix:** You are likely using your login password. You **must** use the App Password generated in Google Security settings.
-
-### 4. Workflow Not Running Automatically
-* **Fix:** You must click the **Activate / Publish** switch in the top right corner of the n8n editor. The background must be green.
-* **Note:** Since this is local, your computer **must be awake** at 8:00 AM and 11:00 PM for the automation to fire.
+### 🤖 Issue 3: The AI sounds too poetic
+If the AI starts talking about "whispers of the soul," it's hallucinating poetry.
+* **The Fix:** Strict prompting. Explicitly forbid words like "tapestry," "soul," and "celestial" in your prompt instructions.
 
 ---
 
-## 🌟 Final Production Check
-Once built, do a final test run:
-1.  Click **Execute Workflow**.
-2.  Check your "Sent" folder in Gmail.
-3.  Verify the signature looks clean and the message sounds human.
-4.  Set the workflow to **Active**.
-
-**Enjoy your new life of automated romance! ❤️**
+## 🌟 How to Run This (Production)
+1.  **Import:** Download the `.json` file from this repo and import it into n8n.
+2.  **Configure:** Update the SMTP credentials with your own Gmail App Password.
+3.  **Activate:** Click the **Publish** button in the top right corner (this effectively "activates" the workflow).
+4.  **Relax:** Close the tab. As long as your computer is on, your agent is working.
 
 ---
-
-*Built with n8n and Llama 3.2*
+### 👨‍💻 Credits
+Built with ❤️ by **Atanu Kumar Bagh**.
