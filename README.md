@@ -15,7 +15,7 @@ This project is a complete automation agent that wakes up twice a day, uses a lo
 
 The workflow follows a logical "Y" structure. It uses two separate time triggers that feed into a single AI brain, ensuring the efficient reuse of logic.
 
-![Workflow Diagram](./image_d39304.png)
+![Workflow Diagram](./workflow-diagram.png)
 *(Note: Upload the screenshot of your workflow here)*
 
 **The Logic Flow:**
@@ -125,4 +125,5 @@ Once built, do a final test run:
 **Enjoy your new life of automated romance! ❤️**
 
 ---
+
 *Built with n8n and Llama 3.2*
